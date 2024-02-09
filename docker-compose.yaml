@@ -1,0 +1,79 @@
+services:
+  server:
+    build:
+      context: ./.docker/php_fpm
+    environment:
+      ENVIRONMENT: development
+    user: 1000:1000
+    hostname: server
+    volumes:
+      - ./server:/var/www
+    working_dir: /var/www
+    restart: always
+  nginx:
+    build:
+      context: ./.docker/nginx
+    environment:
+      ENVIRONMENT: development
+    volumes:
+      - ./.docker/nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./server:/var/www
+    depends_on:
+      - server
+    ports:
+      - 8000:80
+  db:
+    image: "postgres:14-alpine"
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: blackmamba
+      POSTGRES_DB: service
+    ports:
+      - 5433:5432
+    volumes:
+      - db:/var/lib/postgresql/data
+    restart: always
+#  rabbit:
+#    image: rabbitmq:3.11-management-alpine
+#    environment:
+#      RABBITMQ_ERLANG_COOKIE: admin
+#      RABBITMQ_DEFAULT_USER: admin
+#      RABBITMQ_DEFAULT_PASS: admin
+#      RABBITMQ_DEFAULT_VHOST: parsing
+#    ports:
+#      - 15672:15672
+#    volumes:
+#      - rabbit:/var/lib/rabbitmq
+#  minio:
+#    image: minio/minio
+#    command: server /data --console-address ":9001"
+#    volumes:
+#      - minio:/data
+#    ports:
+#      - "9010:9000"
+#      - "9011:9001"
+#    restart: always
+#  elastic:
+#    image: elasticsearch:8.5.0
+#    environment:
+#      - ELASTIC_USERNAME=elastic
+#      - ELASTIC_PASSWORD=elastic
+#      - xpack.security.enabled=false
+#      - discovery.type=single-node
+#      - cluster.name=docker-cluster
+#      - network.host=0.0.0.0
+#      - bootstrap.memory_lock=true
+#      - cluster.routing.allocation.disk.watermark.low=1b
+#      - cluster.routing.allocation.disk.watermark.high=1b
+#      - cluster.routing.allocation.disk.watermark.flood_stage=1b
+#      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+#    volumes:
+#      - elastic:/usr/share/elasticsearch/data
+#    ports:
+#      - "9200:9200"
+#      - "9300:9300"
+volumes:
+#  elastic:
+  db:
+#  rabbit:
+#  minio:
